@@ -116,3 +116,22 @@ model Order {
 - **Error handling**: Minimal, no centralized middleware implemented.  
 - **Authentication**: JWT only — no refresh tokens or role-based access.  
 
+## 🩷 ScreenShots Of UI
+Dashboard
+![WhatsApp Image 2025-09-15 at 22 29 30_6a406d87](https://github.com/user-attachments/assets/9b397f21-ac1a-491d-a87d-9c0e530748ea)
+
+Insights of orders, customers and revenue 
+![WhatsApp Image 2025-09-15 at 22 30 45_cef35306](https://github.com/user-attachments/assets/9fb8754e-19ae-4371-91ce-ef87e7db8dd7)
+
+Multi Stores
+![WhatsApp Image 2025-09-15 at 22 30 20_e96dfe47](https://github.com/user-attachments/assets/d6161256-d136-4d22-a0f7-2346937df534)
+
+Sales Charts 
+![WhatsApp Image 2025-09-15 at 22 31 13_5ccc7d41](https://github.com/user-attachments/assets/041d24e3-2055-4a1b-9edb-f49d21d9faa4)
+
+Top 5 Customers
+![WhatsApp Image 2025-09-15 at 22 31 44_cc6328c6](https://github.com/user-attachments/assets/d9695e5b-e6d5-4d77-ac45-a931f740050d)
+
+
+
+
