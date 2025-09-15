@@ -1,7 +1,7 @@
 'use client';
 
 import axios from 'axios';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import {
   Bar, BarChart, CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis,
 } from 'recharts';
@@ -20,7 +20,7 @@ function Card({ title, value }: { title: string; value: string | number }) {
 }
 
 // ---------- Mock data for the 2nd store ----------
-const SECOND_TENANT_ID = 'second-shop-id'; // keep in sync with TenantSwitcher extra store
+const SECOND_TENANT_ID = 'second-shop-id';
 
 const MOCK_OVERVIEW: Overview = {
   totalCustomers: 128,
@@ -46,7 +46,7 @@ const MOCK_TOPS = [
   { email: 'kiran@example.com', spend: 15100 },
 ];
 
-// ---------- Tenant Switcher (safe localStorage + extra store) ----------
+// ---------- Tenant Switcher ----------
 function TenantSwitcher({ onChange }: { onChange: () => void }) {
   const [tenants, setTenants] = useState<any[]>([]);
   const [activeTenant, setActiveTenant] = useState<string | null>(null);
@@ -58,7 +58,6 @@ function TenantSwitcher({ onChange }: { onChange: () => void }) {
     axios
       .get(`${API}/api/tenants`, { headers: { Authorization: `Bearer ${token}` } })
       .then((res) => {
-        // ✅ Extra demo store (mock data)
         const extra = [
           { id: SECOND_TENANT_ID, name: 'Second Shop', shopDomain: 'second-shop.myshopify.com' },
         ];
@@ -125,11 +124,11 @@ export default function Home() {
     }
   }
 
-  async function load() {
+  // stable loader so children can depend on it without re-triggering
+  const load = useCallback(async () => {
     const { token, tenantId } = auth();
     if (!tenantId) return;
 
-    // If the second store is selected, show mock data
     if (tenantId === SECOND_TENANT_ID) {
       setOverview(MOCK_OVERVIEW);
       setSeries(MOCK_SERIES);
@@ -138,9 +137,7 @@ export default function Home() {
     }
 
     const headers = token ? { Authorization: `Bearer ${token}` } : undefined;
-
-    // 🔥 cache buster so this page always fetches fresh data
-    const ts = Date.now();
+    const ts = Date.now(); // cache buster
 
     const [o, s, t] = await Promise.all([
       axios.get(`${API}/api/sync/${tenantId}/metrics/overview`, { headers, params: { ts } }),
@@ -151,27 +148,30 @@ export default function Home() {
     setOverview(o.data);
     setSeries(s.data);
     setTops(t.data);
-  }
+  }, [from, to]); // re-create when filters change
 
   useEffect(() => {
     load();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [load]);
 
-  // ✅ B) ONLY this page listens for data updates and tab focus to refresh
+  // listen for writes and tab focus → reload ONLY this page
   useEffect(() => {
-    const onUpdated = () => load();
-    const onFocus = () => load();
+    const onUpdated = () => {
+      console.log('[dashboard] metrics:updated → reload');
+      load();
+    };
+    const onFocus = () => {
+      console.log('[dashboard] focus → reload');
+      load();
+    };
 
     window.addEventListener('metrics:updated', onUpdated);
     window.addEventListener('focus', onFocus);
-
     return () => {
       window.removeEventListener('metrics:updated', onUpdated);
       window.removeEventListener('focus', onFocus);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [load]);
 
   return (
     <main className="space-y-6 p-6 bg-pink-50 min-h-screen">
