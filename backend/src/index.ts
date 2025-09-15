@@ -8,7 +8,8 @@ import { authMiddleware } from "./middlewares/auth";
 import { onboardRouter } from "./onboard";
 import { syncRouter } from "./sync";
 import { tenantRouter } from "./tenant";
-import { webhooksRouter } from "./webhooks";
+import { webhooks } from "./webhooks";
+
 
 import "./scheduler";
 
