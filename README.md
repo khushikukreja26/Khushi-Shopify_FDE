@@ -11,7 +11,7 @@ This project demonstrates a **Shopify store setup** with a custom **frontend** a
 
 ### 1. Clone the Repository
 ```bash
-git clone https://github.com/<your-username>/Xeno-fde.git
+git clone https://github.com/khushikukreja26/Khushi-Shopify_FDE
 cd Xeno-fde
 ```
 ## 2. Environment Setup
