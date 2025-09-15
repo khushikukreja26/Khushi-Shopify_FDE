@@ -1,65 +1,80 @@
-import cors from 'cors';
-import 'dotenv/config';
-import express from 'express';
+import cors from "cors";
+import "dotenv/config";
+import express, { NextFunction, Request, Response } from "express";
 
-// Routers: they must export a Router only, and NOT import from index.ts
-import { authRouter } from './auth';
-import { onboardRouter } from './onboard';
-import { syncRouter } from './sync';
-import { webhooks } from './webhooks';
+// Routers...
+import { authRouter } from "./auth";
+import { eventsRouter } from "./events";
+import { authMiddleware } from "./middlewares/auth";
+import { onboardRouter } from "./onboard";
+import { syncRouter } from "./sync";
+import { tenantRouter } from "./tenant";
+import { webhooksRouter } from "./webhooks";
 
-// Initialize the app BEFORE any app.use(...)
+import "./scheduler";
+
 const app = express();
 
-// Middlewares
-app.use(cors({
-  origin: '*',
-  methods: ['GET','POST'],
-  allowedHeaders: ['Content-Type','x-admin-key','Authorization']
-}));
+/** ---------------- CORS (FIRST middleware) ---------------- **/
+const allowedPreview = /^https:\/\/khushi-shopify-fde-sj8w(?:-[a-z0-9-]+)?\.vercel\.app$/; // previews
+const allowedStatic = [
+  "https://khushi-shopify-fde-sj8w.vercel.app", // production
+  "http://localhost:3000",                       // local dev
+];
+
+app.use(
+  cors({
+    origin(origin, cb) {
+      // allow server-to-server (no Origin header)
+      if (!origin) return cb(null, true);
+
+      const ok = allowedPreview.test(origin) || allowedStatic.includes(origin);
+      return cb(null, ok);
+    },
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "x-admin-key", "Authorization"],
+    optionsSuccessStatus: 200, // some browsers require 200 for preflight
+    credentials: false,        // set true only if you actually use cookies/auth headers cross-site
+  })
+);
+
+// respond to preflight quickly on all routes
+app.options("*", cors());
+/** --------------------------------------------------------- **/
+
 app.use(express.json());
 
-// Healthcheck
-app.get('/health', (_req, res) => res.json({ ok: true }));
+// Health
+app.get("/health", (_req: Request, res: Response) => res.json({ ok: true }));
 
-// Put after the healthcheck, before error handlers
+// (Optional) friendly root so base URL doesn’t 404
 app.get("/", (_req: Request, res: Response) => {
   res.json({
     message: "🚀 Shopify FDE API is live",
     health: "/health",
-    routes: [
-      "/api/auth",
-      "/api/onboard",
-      "/api/tenants",
-      "/api/sync",
-      "/api/events",
-      "/api/webhooks"
-    ]
+    routes: ["/api/auth", "/api/onboard", "/api/tenants", "/api/sync", "/api/events", "/api/webhooks"],
   });
 });
 
-
 // Routes
-app.use('/api/tenants', onboardRouter);
-app.use('/api/auth', authRouter);
-app.use('/api/sync', syncRouter);
-app.use('/api/webhooks', webhooks);
+app.use("/api/auth", authRouter);
+app.use("/api/onboard", onboardRouter);
+app.use("/api/tenants", tenantRouter);
+app.use("/api/sync", syncRouter);
+app.use("/api/webhooks", webhooksRouter);
+app.use("/api/events", authMiddleware, eventsRouter);
 
-// Start server
+// 404 JSON
+app.use((req: Request, res: Response) => res.status(404).json({ error: "Not Found", path: req.path }));
+
+// Error handler
+app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
+  console.error(err);
+  res.status(500).json({ error: "Internal Server Error" });
+});
+
 const port = process.env.PORT || 5000;
 app.listen(port, () => console.log(`✅ API listening on :${port}`));
 
-// Load scheduler LAST so it doesn't import `app` (it shouldn't import from this file)
-import './scheduler';
+export default app;
 
-import { tenantRouter } from './tenant';
-app.use('/api/tenants', tenantRouter);
-
-import { eventsRouter } from './events';
-app.use('/api/events', eventsRouter);
-
-import { authMiddleware } from './middlewares/auth';
-
-// ... your existing app.use(cors()), app.use(express.json()), etc.
-
-app.use('/api/events', authMiddleware, eventsRouter);
