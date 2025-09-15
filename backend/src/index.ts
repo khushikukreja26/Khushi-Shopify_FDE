@@ -56,11 +56,31 @@ app.use((req: Request, res: Response, next: NextFunction) => {
 });
 
 // You can still keep cors() for non-browser clients (Postman/cURL)
-app.use(
-  cors({
-    origin: false, // we already set headers above; prevent double headers
-  })
-);
+app.use(cors({
+  origin(origin, cb) {
+    if (!origin) return cb(null, true); // server-to-server or curl
+    const ok =
+      origin === 'http://localhost:3000' ||
+      origin.endsWith('.vercel.app');
+    cb(null, ok);
+  },
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'x-admin-key'],
+  optionsSuccessStatus: 200,
+  credentials: false,
+}));
+
+// Preflight handler
+app.options('*', cors());
+
+// 🚫 tell browsers/CDNs not to cache API responses
+app.use((_, res, next) => {
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+  res.setHeader('Pragma', 'no-cache');
+  res.setHeader('Expires', '0');
+  res.setHeader('Surrogate-Control', 'no-store');
+  next();
+});
 /** --------------------------------------------------------- **/
 
 app.use(express.json());
