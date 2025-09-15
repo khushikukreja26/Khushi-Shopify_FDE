@@ -1,0 +1,70 @@
+@import "tailwindcss";
+
+/* --- Pink theme tokens --- */
+@theme inline {
+  --color-brand-50:  #fff1f7;
+  --color-brand-100: #ffe4ef;
+  --color-brand-200: #fecdd9;
+  --color-brand-300: #fda4bf;
+  --color-brand-400: #fb79a5;
+  --color-brand-500: #f35098; /* primary */
+  --color-brand-600: #e23f8b;
+  --color-brand-700: #c42f78;
+  --color-brand-800: #9f2965;
+  --color-brand-900: #831f54;
+
+  --shadow-soft: 0 8px 30px rgba(243, 80, 152, 0.12);
+  --radius-xl2: 1rem;
+
+  --color-foreground: #111827; /* readable */
+}
+
+/* keep fonts wired */
+:root {
+  --background: #ffffff;
+  --foreground: var(--color-foreground);
+}
+
+/* softer pink background you WILL notice */
+html, body { height: 100%; }
+body {
+  background-image:
+    radial-gradient(900px 420px at 8% -8%, rgba(252,231,243,.7), transparent),
+    radial-gradient(700px 360px at 92% 6%, rgba(255,228,235,.55), transparent),
+    linear-gradient(180deg, #fff 0%, #fff 100%);
+  background-color: #fff;
+  color: var(--foreground);
+  font-family: var(--font-geist-sans), ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* { transition: color .15s, background-color .15s, border-color .15s, box-shadow .15s; }
+
+/* reusable utilities */
+.card { border-radius: var(--radius-xl2); background:#fff; border:1px solid var(--color-brand-100); box-shadow: var(--shadow-soft); }
+.btn  { display:inline-flex; align-items:center; justify-content:center; border-radius:.75rem; padding:.5rem .75rem; font-weight:500; font-size:.9rem; }
+.btn-outline { border:1px solid var(--color-brand-200); background:#fff; color:var(--color-brand-800); }
+.btn-outline:hover { background: var(--color-brand-50); }
+.btn-solid { background: var(--color-brand-500); color:#fff; box-shadow: var(--shadow-soft); }
+.btn-solid:hover { background: var(--color-brand-600); }
+.input { border:1px solid var(--color-brand-200); background:#fff; color:#111827; border-radius:.75rem; padding:.5rem .75rem; }
+.btn-logout {
+  background: linear-gradient(135deg, #ec4899, #f472b6);
+  color: white;
+  font-weight: 600;
+  padding: 0.6rem 1.2rem;
+  border-radius: 0.75rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(236, 72, 153, 0.3);
+}
+.btn-logout:hover {
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 8px 20px rgba(236, 72, 153, 0.5);
+}
+.btn-logout:active {
+  transform: scale(0.96);
+  box-shadow: 0 2px 8px rgba(236, 72, 153, 0.3);
+}
+
