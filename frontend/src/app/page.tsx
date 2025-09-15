@@ -138,11 +138,16 @@ export default function Home() {
     }
 
     const headers = token ? { Authorization: `Bearer ${token}` } : undefined;
+
+    // 🔥 cache buster so this page always fetches fresh data
+    const ts = Date.now();
+
     const [o, s, t] = await Promise.all([
-      axios.get(`${API}/api/sync/${tenantId}/metrics/overview`, { headers }),
-      axios.get(`${API}/api/sync/${tenantId}/metrics/orders-by-date`, { params: { from, to }, headers }),
-      axios.get(`${API}/api/sync/${tenantId}/metrics/top-customers`, { headers }),
+      axios.get(`${API}/api/sync/${tenantId}/metrics/overview`, { headers, params: { ts } }),
+      axios.get(`${API}/api/sync/${tenantId}/metrics/orders-by-date`, { headers, params: { from, to, ts } }),
+      axios.get(`${API}/api/sync/${tenantId}/metrics/top-customers`, { headers, params: { ts } }),
     ]);
+
     setOverview(o.data);
     setSeries(s.data);
     setTops(t.data);
@@ -150,6 +155,21 @@ export default function Home() {
 
   useEffect(() => {
     load();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // ⬇️ Refresh ONLY this page when data is updated elsewhere, and on tab focus
+  useEffect(() => {
+    const onUpdated = () => load();
+    const onFocus = () => load();
+
+    window.addEventListener('metrics:updated', onUpdated);
+    window.addEventListener('focus', onFocus);
+
+    return () => {
+      window.removeEventListener('metrics:updated', onUpdated);
+      window.removeEventListener('focus', onFocus);
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
