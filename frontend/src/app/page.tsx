@@ -58,7 +58,7 @@ function TenantSwitcher({ onChange }: { onChange: () => void }) {
     axios
       .get(`${API}/api/tenants`, { headers: { Authorization: `Bearer ${token}` } })
       .then((res) => {
-        // ✅ Add another store here (edit id/name/shopDomain as needed)
+        // ✅ Extra demo store (mock data)
         const extra = [
           { id: SECOND_TENANT_ID, name: 'Second Shop', shopDomain: 'second-shop.myshopify.com' },
         ];
@@ -158,7 +158,7 @@ export default function Home() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // ⬇️ Refresh ONLY this page when data is updated elsewhere, and on tab focus
+  // ✅ B) ONLY this page listens for data updates and tab focus to refresh
   useEffect(() => {
     const onUpdated = () => load();
     const onFocus = () => load();
@@ -240,4 +240,3 @@ export default function Home() {
     </main>
   );
 }
-
