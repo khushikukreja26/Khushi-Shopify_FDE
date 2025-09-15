@@ -22,6 +22,23 @@ app.use(express.json());
 // Healthcheck
 app.get('/health', (_req, res) => res.json({ ok: true }));
 
+// Put after the healthcheck, before error handlers
+app.get("/", (_req: Request, res: Response) => {
+  res.json({
+    message: "🚀 Shopify FDE API is live",
+    health: "/health",
+    routes: [
+      "/api/auth",
+      "/api/onboard",
+      "/api/tenants",
+      "/api/sync",
+      "/api/events",
+      "/api/webhooks"
+    ]
+  });
+});
+
+
 // Routes
 app.use('/api/tenants', onboardRouter);
 app.use('/api/auth', authRouter);
