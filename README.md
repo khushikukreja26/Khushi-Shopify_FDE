@@ -53,13 +53,47 @@ Start frontend:
 cd frontend
 npm run dev
 ```
-#5. Expose Backend Locally (for Shopify)
+##5. Expose Backend Locally (for Shopify)
 ```bash
 ngrok http 5000
 ```
 Use the ngrok URL in your Shopify Partner App → App URL and Redirect URL.
 
 ## 🏗️ Architecture Diagram
+<img width="1445" height="883" alt="diagram-export-15-09-2025-22_21_52" src="https://github.com/user-attachments/assets/b038ff24-b1ca-4b74-972e-40a57f82f7ab" />
+
+
+## 🗂️ Database Schema (Prisma)
+
+```prisma
+model Tenant {
+  id        String   @id @default(cuid())
+  name      String
+  shop      String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  products  Product[]
+}
+
+model Product {
+  id        String   @id @default(cuid())
+  title     String
+  price     Float
+  tenantId  String
+  Tenant    Tenant   @relation(fields: [tenantId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Order {
+  id        String   @id @default(cuid())
+  shopifyId String   @unique
+  total     Float
+  tenantId  String
+  Tenant    Tenant   @relation(fields: [tenantId], references: [id])
+  createdAt DateTime @default(now())
+}
+```
 ### Authentication
 - **POST** `/api/auth/install` → Install the Shopify app  
 - **GET** `/api/auth/callback` → Shopify OAuth callback  
