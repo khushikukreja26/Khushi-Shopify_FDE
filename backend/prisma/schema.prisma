@@ -1,0 +1,88 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Tenant {
+  id               String     @id @default(cuid())
+  name             String
+  shopDomain       String     @unique
+  adminAccessToken String
+  createdAt        DateTime   @default(now())
+  Customers        Customer[]
+  Products         Product[]
+  Orders           Order[]
+  Users            User[]
+  Events           Event[]
+}
+
+model User {
+  id       String @id @default(cuid())
+  email    String @unique
+  password String
+  tenantId String
+  Tenant   Tenant @relation(fields: [tenantId], references: [id])
+
+  @@index([tenantId, email])
+}
+
+model Customer {
+  id        String   @id @default(cuid())
+  tenantId  String
+  shopifyId BigInt
+  email     String?
+  firstName String?
+  lastName  String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  Tenant    Tenant   @relation(fields: [tenantId], references: [id])
+
+  @@unique([tenantId, shopifyId]) // << used by where: { tenantId_shopifyId: ... }
+  @@index([tenantId, shopifyId])
+}
+
+model Product {
+  id        String   @id @default(cuid())
+  tenantId  String
+  shopifyId BigInt
+  title     String
+  priceMin  Float?
+  priceMax  Float?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  Tenant    Tenant   @relation(fields: [tenantId], references: [id])
+
+  @@unique([tenantId, shopifyId]) // << used by where: { tenantId_shopifyId: ... }
+  @@index([tenantId, shopifyId])
+}
+
+model Order {
+  id          String    @id @default(cuid())
+  tenantId    String
+  shopifyId   BigInt
+  totalPrice  Float
+  currency    String?
+  createdAt   DateTime
+  processedAt DateTime?
+  customerId  String? // optional link to Customer (your code tries to link if found)
+  Tenant      Tenant    @relation(fields: [tenantId], references: [id])
+
+  @@unique([tenantId, shopifyId]) // << used by where: { tenantId_shopifyId: ... }
+  @@index([tenantId, shopifyId])
+}
+
+model Event {
+  id        String   @id @default(cuid())
+  tenantId  String
+  type      String // 'checkout_started' | 'cart_abandoned' | any future event
+  createdAt DateTime @default(now())
+  metadata  Json?
+
+  Tenant Tenant @relation(fields: [tenantId], references: [id])
+
+  @@index([tenantId, type, createdAt])
+}
